@@ -1,0 +1,53 @@
+PATH
+  remote: /Users/bjenkins/workspace/fog
+  specs:
+    fog (0.3.5)
+      builder
+      excon (>= 0.2.1)
+      formatador (>= 0.0.15)
+      json
+      mime-types
+      net-ssh (~> 2.0.23)
+      nokogiri (~> 1.4.3.1)
+      ruby-hmac
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    builder (2.1.2)
+    columnize (0.3.1)
+    diff-lcs (1.1.2)
+    excon (0.2.2)
+    formatador (0.0.15)
+    json (1.4.6)
+    linecache (0.43)
+    mime-types (1.16)
+    net-ssh (2.0.23)
+    nokogiri (1.4.3.1)
+    rake (0.8.7)
+    rspec (2.0.0.beta.22)
+      rspec-core (= 2.0.0.beta.22)
+      rspec-expectations (= 2.0.0.beta.22)
+      rspec-mocks (= 2.0.0.beta.22)
+    rspec-core (2.0.0.beta.22)
+    rspec-expectations (2.0.0.beta.22)
+      diff-lcs (>= 1.1.2)
+    rspec-mocks (2.0.0.beta.22)
+      rspec-core (= 2.0.0.beta.22)
+      rspec-expectations (= 2.0.0.beta.22)
+    ruby-debug (0.10.3)
+      columnize (>= 0.1)
+      ruby-debug-base (~> 0.10.3.0)
+    ruby-debug-base (0.10.3)
+      linecache (>= 0.3)
+    ruby-hmac (0.4.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  fog!
+  net-ssh
+  rake
+  rspec (~> 2.0.0.beta)
+  ruby-debug
