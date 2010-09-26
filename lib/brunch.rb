@@ -17,4 +17,14 @@ class Brunch
 
     [public_key, private_key]
   end
+
+  def generate_host_key_installation_script(public_key, private_key)
+    <<-EOF.map{|line| line.strip}
+      echo '#{public_key}' > /etc/ssh/ssh_host_rsa_key.pub
+      echo '#{private_key}' > /etc/ssh/ssh_host_rsa_key
+      rm /etc/ssh/ssh_host_dsa_key
+      rm /etc/ssh/ssh_host_dsa_key.pub
+      /etc/init.d/ssh reload
+    EOF
+  end
 end
