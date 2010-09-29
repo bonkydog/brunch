@@ -1,1 +1,1 @@
-require 'lib/brunch'
+load 'lib/tasks/brunch.rake'

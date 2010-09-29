@@ -13,4 +13,5 @@ end
 
 group :development do
   gem "ruby-debug"
+  gem "ruby-debug-ide"
 end

@@ -5,23 +5,29 @@ describe Brunch do
 
   before :all do
     Fog.mock!
+    @brunch = Brunch.new
   end
 
   describe "#generate_host_key" do
     it "should generate a pair of ssh keys for use as a host key" do
-      brunch = Brunch.new
-      public_key, private_key = brunch.generate_host_keys
+
+
+      public_key, private_key = @brunch.generate_host_keys
+
       public_key.should be_a OpenSSL::PKey::RSA
       private_key.should be_a OpenSSL::PKey::RSA
+
+      brunch.public_key.should == public_key
+      brunch.private_key.should == private_key
     end
   end
 
   describe "#generate_host_key_installation_script" do
 
     it "should generate a host key installation script" do
-      brunch = Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY')
-      script = brunch.generate_host_key_installation_script()
-      script.should == <<-EOF.map { |line| line.strip }
+      @brunch = Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY')
+      script = @brunch.generate_host_key_installation_script()
+      script.gsub(/^ +| +$/, '').should == <<-EOF.gsub(/^ +| +$/, '')
         echo 'PUBLIC_KEY' > /etc/ssh/ssh_host_rsa_key.pub
         echo 'PRIVATE_KEY' > /etc/ssh/ssh_host_rsa_key
         rm /etc/ssh/ssh_host_dsa_key
@@ -33,10 +39,10 @@ describe Brunch do
   end
 
   describe "#provision_server" do
+    
     it "should call a bunch of fog stuff to set up a server" do
-      brunch = Brunch.new
       fake_public_host_key = 'FAKE PUBLIC HOST KEY'
-      stub(brunch).host_public_key { fake_public_host_key}
+      stub(@brunch).host_public_key { fake_public_host_key}
 
       fake_credentials = {
         :private_key_path=>"~/.ssh/amazon_id_rsa",
@@ -45,7 +51,7 @@ describe Brunch do
 
       connection = stub!
 
-      stub(brunch).credentials {fake_credentials}
+      stub(@brunch).credentials {fake_credentials}
 
       expected_server_spec = {
         :image_id => 'ami-1234de7b',
@@ -68,8 +74,16 @@ describe Brunch do
 
       mock(Net::SSH::KnownHosts).add_or_replace('www.example.com,127.0.0.1', fake_public_host_key)
 
-      pp brunch.provision_server
+      @brunch.provision_server
     end
+  end
+
+  describe "#install_chef_on_server" do
+    it "should install chef on the server"
+  end
+
+  describe "#create_ami" do
+    it "should create a new ami"
   end
 
 =begin
@@ -77,13 +91,6 @@ describe Brunch do
 
 task :provision_server => :generate_user_data do
 
-
-  hosts = [server.dns_name, server.ip_address]
-  hosts.each do |host|
-    system "ssh-keygen -R #{host}"
-  end
-
-  Net::SSH::KnownHosts.add(hosts.join(","), Net::SSH::KeyFactory.load_data_public_key(CONFIG.public_key))
 
 end
 
