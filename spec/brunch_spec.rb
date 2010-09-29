@@ -1,6 +1,5 @@
 require File.expand_path("../lib/brunch", File.dirname(__FILE__))
 
-
 describe Brunch do
 
   describe "#generate_host_key" do
@@ -15,7 +14,8 @@ describe Brunch do
   describe "#generate_host_key_installation_script" do
 
     it "should generate a host key installation script" do
-      script = Brunch.new.generate_host_key_installation_script('PUBLIC_KEY', 'PRIVATE_KEY')
+      brunch = Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY')
+      script = brunch.generate_host_key_installation_script()
       script.should == <<-EOF.map{|line| line.strip}
         echo 'PUBLIC_KEY' > /etc/ssh/ssh_host_rsa_key.pub
         echo 'PRIVATE_KEY' > /etc/ssh/ssh_host_rsa_key
