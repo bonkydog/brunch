@@ -1,5 +1,9 @@
 require 'net/ssh'
+require 'net_ssh_known_hosts_ext'
 require 'fog'
+require 'fog/credentials'
+
+
 
 class Brunch < Fog::Model
 
@@ -30,5 +34,30 @@ class Brunch < Fog::Model
       rm /etc/ssh/ssh_host_dsa_key.pub
       /etc/init.d/ssh reload
     EOF
+  end
+
+  def credentials
+    Fog.credentials
+  end
+
+  def provision_server
+    connection = Fog::AWS::Compute.new(credentials)
+
+    server = connection.servers.create({
+      :image_id => 'ami-1234de7b',
+      :flavor_id => 't1.micro',
+      :key_name => 'bonkydog',
+      :user_data => "USER DATA"
+    })
+
+    server.wait_for { ready? }
+    server.reload
+
+    hosts = [server.dns_name, server.ip_address].join(",")
+
+    Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
+
+    server
+
   end
 end
