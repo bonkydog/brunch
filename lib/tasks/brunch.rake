@@ -6,29 +6,32 @@ brunch = Brunch.new
 namespace :host_key do
 
   task :generate do
-    pp brunch.generate_host_keys
+    brunch.generate_host_keys
   end
 
-  task :install_script => :generate do
-    p brunch.generate_host_key_installation_script
+  task :image_customization_script => :generate do
+    brunch.generate_image_customization_script
+  end
+
+  task :image_host_key_customization_script => :generate do
+    brunch.generate_image_host_key_customization_script
   end
 
 end
 
 namespace :server do
 
-  task :provision => 'host_key:install_script' do
-    pp brunch.provision_server
+  task :provision_and_customize, [:image_id] => 'host_key:image_customization_script' do |task, options|
+    brunch.provision_server(options)
   end
 
-  task :install_chef do
-    pp brunch.install_chef
+  task :provision, [:image_id] => 'host_key:image_host_key_customization_script' do |task, options|
+    brunch.provision_server(options)
   end
 
-  task :create_ami do
+  task :create_ami => :provision_and_customize do
     pp brunch.create_ami
   end
-
 
 end
 

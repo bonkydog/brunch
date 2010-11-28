@@ -17,8 +17,8 @@ describe Brunch do
       public_key.should be_a OpenSSL::PKey::RSA
       private_key.should be_a OpenSSL::PKey::RSA
 
-      brunch.public_key.should == public_key
-      brunch.private_key.should == private_key
+      @brunch.host_public_key.should == public_key
+      @brunch.host_private_key.should == private_key
     end
   end
 
@@ -26,13 +26,12 @@ describe Brunch do
 
     it "should generate a host key installation script" do
       @brunch = Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY')
-      script = @brunch.generate_host_key_installation_script()
-      script.gsub(/^ +| +$/, '').should == <<-EOF.gsub(/^ +| +$/, '')
+      script = @brunch.generate_image_customization_script()
+      script.should == <<-EOF.strip_lines
+        #! /bin/bash
         echo 'PUBLIC_KEY' > /etc/ssh/ssh_host_rsa_key.pub
         echo 'PRIVATE_KEY' > /etc/ssh/ssh_host_rsa_key
-        rm /etc/ssh/ssh_host_dsa_key
-        rm /etc/ssh/ssh_host_dsa_key.pub
-        /etc/init.d/ssh reload
+        /etc/init.d/ssh restart
       EOF
 
     end
@@ -74,6 +73,7 @@ describe Brunch do
 
       mock(Net::SSH::KnownHosts).add_or_replace('www.example.com,127.0.0.1', fake_public_host_key)
 
+      @brunch.user_data = "USER DATA"
       @brunch.provision_server
     end
   end

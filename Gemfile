@@ -2,6 +2,7 @@ source :rubygems
 gem "rake"
 gem "fog", :path => "~/workspace/fog"
 gem "net-ssh"
+gem "uuidtools"
 
 group :test do
   gem 'rspec-core'
@@ -12,6 +13,6 @@ group :test do
 end
 
 group :development do
-  gem "ruby-debug"
+  gem 'ruby-debug-base', "0.10.5.jb2"
   gem "ruby-debug-ide"
 end
