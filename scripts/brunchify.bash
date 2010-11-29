@@ -1,8 +1,3 @@
-#!/bin/bash
-
-set -e
-set -v
-
 #########################################################
 # packages
 
@@ -31,7 +26,7 @@ aptitude -y install \
   ssl-cert \
   vim \
   less \
-  git-core 
+  git-core
 
 
 #########################################################
@@ -55,3 +50,10 @@ gem install --no-rdoc --no-ri bundler
 # chef
 
 gem install --no-rdoc --no-ri chef
+
+#########################################################
+# finish
+
+sudo init 1
+touch ~ubuntu/.brunch_done
+reboot

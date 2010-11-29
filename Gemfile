@@ -3,6 +3,7 @@ gem "rake"
 gem "fog", :path => "~/workspace/fog"
 gem "net-ssh"
 gem "uuidtools"
+gem "highline"
 
 group :test do
   gem 'rspec-core'

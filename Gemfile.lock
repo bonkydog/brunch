@@ -18,6 +18,7 @@ GEM
     diff-lcs (1.1.2)
     excon (0.2.4)
     formatador (0.0.16)
+    highline (1.6.1)
     json (1.4.6)
     linecache (0.43)
     mime-types (1.16)
@@ -45,6 +46,7 @@ PLATFORMS
 
 DEPENDENCIES
   fog!
+  highline
   net-ssh
   rake
   rr

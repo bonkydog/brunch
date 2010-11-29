@@ -12,7 +12,7 @@ describe Brunch do
     it "should generate a pair of ssh keys for use as a host key" do
 
 
-      public_key, private_key = @brunch.generate_host_keys
+      public_key, private_key = @brunch.make_host_keys
 
       public_key.should be_a OpenSSL::PKey::RSA
       private_key.should be_a OpenSSL::PKey::RSA
@@ -22,11 +22,11 @@ describe Brunch do
     end
   end
 
-  describe "#generate_host_key_installation_script" do
+  describe "#generate_host_key_script" do
 
     it "should generate a host key installation script" do
       @brunch = Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY')
-      script = @brunch.generate_image_customization_script()
+      script = @brunch.make_prototype_script()
       script.should == <<-EOF.strip_lines
         #! /bin/bash
         echo 'PUBLIC_KEY' > /etc/ssh/ssh_host_rsa_key.pub
@@ -74,7 +74,7 @@ describe Brunch do
       mock(Net::SSH::KnownHosts).add_or_replace('www.example.com,127.0.0.1', fake_public_host_key)
 
       @brunch.user_data = "USER DATA"
-      @brunch.provision_server
+      @brunch.prototype_server
     end
   end
 

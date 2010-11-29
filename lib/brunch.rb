@@ -8,25 +8,46 @@ require 'fog'
 require 'fog/core/credentials'
 require 'tmpdir'
 require 'uuidtools'
+require 'pp'
+require 'highline/import'
+
+class Fog::AWS::Compute::Server < Fog::Model
+  def brunchified?
+    return true if Fog.mocking?
+    self.username = 'ubuntu'
+    result = ssh('ls ~ubuntu/.brunch_done').last
+    result.status == 0 && result.stdout.include?("brunch_done")
+  rescue Exception => e
+    false
+  end
+end
+
 
 class Brunch < Fog::Model
+
+  STOCK_IMAGE_ID = 'ami-1234de7b' # stock Ubuntu 10.10 LTS
 
   def root
     @@root ||= File.expand_path("..", File.dirname(__FILE__))
   end
 
   def initialize(*arguments)
-    self.connection = Fog::AWS::Compute.new(credentials)
+    self.connection = Fog::AWS::Compute.new(Fog.credentials)
     super
   end
 
   attribute :host_public_key
   attribute :host_private_key
+  attribute :host_keys
+
+  attribute :prototype_server
   attribute :server
   attribute :connection
-  attribute :user_data
 
-  def generate_host_keys
+  attribute :prototype_script
+  attribute :host_key_script
+
+  def make_host_keys
     begin
       private_key_file_name = File.join(Dir::tmpdir, "terraform_#$$_#{rand(1000)}")
       public_key_file_name = private_key_file_name + ".pub"
@@ -36,137 +57,41 @@ class Brunch < Fog::Model
     ensure
       [public_key_file_name, private_key_file_name].each { |f| File.unlink(f) if f && File.exists?(f) }
     end
-
-    [host_public_key, host_private_key]
+    self.host_keys = [host_public_key, host_private_key]
+    pp host_keys if $DEBUG
+    host_keys
   end
 
-  def host_key_installation_clause
-    <<-EOF.strip_lines
+  def make_host_key_script
+    requires :host_public_key, :host_private_key
+
+    self.host_key_script = <<-EOF.strip_lines
       echo '#{host_public_key}' > /etc/ssh/ssh_host_rsa_key.pub
       echo '#{host_private_key}' > /etc/ssh/ssh_host_rsa_key
       /etc/init.d/ssh restart
     EOF
   end
 
-  def image_customization_clause
-    <<-EOF.strip_lines
-
-      #########################################################
-      # packages
-
-      # enable all repositories
-      sed -i 's/^#deb/deb/' /etc/apt/sources.list
-      sed -i 's/universe/universe multiverse/' /etc/apt/sources.list
-
-      # update packages
-      aptitude update
-      aptitude -y full-upgrade
-
-      # install packages for system administration
-      aptitude -y install \
-        ruby \
-        ruby1.8-dev \
-        libopenssl-ruby1.8 \
-        libshadow-ruby1.8 \
-        libxml2-dev \
-        libxslt-dev \
-        rdoc1.8 \
-        ri1.8 \
-        irb1.8 \
-        build-essential \
-        wget \
-        curl \
-        ssl-cert \
-        vim \
-        less \
-        git-core
-
-
-      #########################################################
-      # ruby gems
-
-      wget http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz
-      tar zxvf rubygems-1.3.7.tgz
-
-      pushd rubygems-1.3.7
-        ruby ./setup.rb
-        ln -sfv /usr/bin/gem1.8 /usr/bin/gem
-      popd
-
-      rm -rf rubygems-1.3.7*
-
-      gem update --system
-
-      gem install --no-rdoc --no-ri bundler
-
-      #########################################################
-      # chef
-
-      gem install --no-rdoc --no-ri chef
-
-      #########################################################
-      # finish
-
-      sudo init 1
-      touch ~ubuntu/.brunch_done
-      reboot
-    EOF
+  def make_prototype_script
+    self.prototype_script = File.read(File.join(root, "scripts/brunchify.bash"))
   end
 
-  def generate_image_customization_script
-    self.user_data = ["#! /bin/bash", host_key_installation_clause, image_customization_clause].join("\n")
+  def make_prototype_server
+    requires :host_keys
+
+    self.prototype_server = start_server(STOCK_IMAGE_ID, prototype_script)
+
+    raise "Brunchification seems to have failed." unless prototype_server.wait_for(1200, 10) { brunchified? }
+
+    prototype_server
   end
 
-  def generate_image_host_key_customization_script
-    self.user_data = ["#! /bin/bash", host_key_installation_clause].join("\n")
-  end
+  def make_prototype_image
+    requires :prototype_server
 
-  def credentials
-    Fog.credentials
-  end
-
-  def provision_server(options)
-    connection = Fog::AWS::Compute.new(credentials)
-
-    server_options = {
-      :image_id => 'ami-1234de7b',
-      :flavor_id => 't1.micro',
-      :key_name => 'bonkydog',
-      :user_data => user_data
-    }.merge(options)
-
-    self.server = connection.servers.create(server_options)
-
-    server.wait_for { ready? }
-
-    hosts = [server.dns_name, server.ip_address].join(",")
-
-    Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
-
-    server.username = 'ubuntu'
-    setup_complete = server.wait_for(1200, 10) do
-      begin
-        result = ssh('ls ~ubuntu/.brunch_done').last
-        pp result
-        result.status == 0 && result.stdout.include?("brunch_done")
-      rescue Exception => e
-        pp e
-        false
-      end
-    end
-
-    raise "setup failed" unless setup_complete
-
-    server
-  end
-
-  def create_ami
-    self.server ||= connection.servers.last
-    server.username = 'ubuntu'
-
-    volume = connection.volumes.create(:availability_zone => server.availability_zone, :size => 15)
+    volume = connection.volumes.create(:availability_zone => prototype_server.availability_zone, :size => 15)
     volume.device = '/dev/sdx'
-    volume.server = server
+    volume.server = prototype_server
 
     commands = [
       'sudo bash -c "echo y | mkfs.ext3 /dev/sdx"',
@@ -177,8 +102,8 @@ class Brunch < Fog::Model
       "sudo rmdir /mnt/ebs",
     ]
 
-    server.ssh(commands)
-
+    prototype_server.username = 'ubuntu'
+    prototype_server.ssh(commands)
 
     snapshot = volume.snapshots.create
     snapshot.wait_for { ready? }
@@ -187,7 +112,7 @@ class Brunch < Fog::Model
     volume.wait_for { ready? }
     volume.destroy
 
-    original_image = connection.images.get(server.image_id)
+    original_image = connection.images.get(prototype_server.image_id)
 
     new_image = connection.register_image(
       "brunch-#{Time.now.strftime("%Y-%m-%d-%H-%M-%S")}-#{SecureRandom.hex[0..6]}",
@@ -201,5 +126,67 @@ class Brunch < Fog::Model
 
     new_image
   end
+
+  def prototype_image
+    @prototype_image ||= begin
+      my_images = connection.images.all("is-public" => false)
+      brunch_images = my_images.select{|i| i.location.match(/\/brunch/)}
+      most_recent_image =  brunch_images.sort_by(&:location).last
+      most_recent_image
+    end
+  end
+
+  def make_server(options = {})
+    image_id = options[:image_id] || prototype_image.id or raise "No image specified (and couldn't find a brunch prototype image)"
+    self.server = start_server(image_id)
+  end
+
+  def make_destroy_everything
+    unless agree("Are you sure you want to destroy EVERYTHING?")
+      puts "OK, NOT destroying everything."
+      return
+    end
+
+    connection.images.all("is-public" => false).each {|image| image.deregister(true)}
+    connection.snapshots.each {|snapshot| snapshot.destroy}
+    connection.volumes.each {|volume| volume.destroy if volume.ready? }
+    connection.servers.each do |server|
+      Net::SSH::KnownHosts.remove(server.dns_name)
+      server.destroy
+    end
+  end
+  
+  def destroy_everything
+    nil
+  end
+
+
+  # ===== UTILITIES ====================================================================================================
+
+  def start_server(image_id , boot_script = nil)
+
+    user_data = ["#!/bin/bash", host_key_script, boot_script.to_s].join("\n")
+
+    server_options = {
+      :image_id => image_id,
+      :flavor_id => 't1.micro',
+      :key_name => 'bonkydog',
+      :user_data => user_data
+    }
+
+    new_server = connection.servers.create(server_options)
+
+    new_server.wait_for { ready? }
+
+    hosts = [new_server.dns_name, new_server.ip_address].join(",")
+
+    Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
+
+    pp new_server if $DEBUG
+    new_server
+  end
+
+
+
 
 end
