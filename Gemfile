@@ -11,6 +11,7 @@ group :test do
   gem 'rspec-mocks'
   gem 'rspec'
   gem 'rr'
+  gem "fakeweb"
 end
 
 group :development do

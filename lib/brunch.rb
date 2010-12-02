@@ -180,7 +180,7 @@ class Brunch < Fog::Model
 
     hosts = [new_server.dns_name, new_server.ip_address].join(",")
 
-    Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
+    #Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
 
     pp new_server if $DEBUG
     new_server
