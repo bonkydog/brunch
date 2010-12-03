@@ -3,6 +3,7 @@ require File.expand_path("../lib/brunch", File.dirname(__FILE__))
 
 describe Brunch do
 
+  
   before :all do
     Fog.mock!
 
@@ -35,5 +36,7 @@ describe Brunch do
 
     end
   end
+
+  
 
 end

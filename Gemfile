@@ -12,6 +12,7 @@ group :test do
   gem 'rspec'
   gem 'rr'
   gem "fakeweb"
+  gem 'rcov'
 end
 
 group :development do

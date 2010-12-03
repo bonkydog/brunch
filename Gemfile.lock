@@ -26,6 +26,7 @@ GEM
     net-ssh (2.0.23)
     nokogiri (1.4.3.1)
     rake (0.8.7)
+    rcov (0.9.9)
     rr (1.0.2)
     rspec (2.1.0)
       rspec-core (~> 2.1.0)
@@ -51,6 +52,7 @@ DEPENDENCIES
   highline
   net-ssh
   rake
+  rcov
   rr
   rspec
   rspec-core
