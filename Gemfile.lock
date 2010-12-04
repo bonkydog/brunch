@@ -1,14 +1,15 @@
 PATH
   remote: ~/workspace/fog
   specs:
-    fog (0.3.25)
+    fog (0.3.26)
       builder
-      excon (>= 0.2.4)
+      excon (>= 0.2.8)
       formatador (>= 0.0.16)
       json
       mime-types
-      net-ssh (~> 2.0.23)
-      nokogiri (~> 1.4.3.1)
+      named-parameters (>= 0.0.14)
+      net-ssh (>= 2.0.23)
+      nokogiri (>= 1.4.4)
       ruby-hmac
 
 GEM
@@ -24,8 +25,9 @@ GEM
     json (1.4.6)
     linecache (0.43)
     mime-types (1.16)
+    named-parameters (0.0.14)
     net-ssh (2.0.23)
-    nokogiri (1.4.3.1)
+    nokogiri (1.4.4)
     rake (0.8.7)
     rcov (0.9.9)
     rr (1.0.2)
