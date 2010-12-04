@@ -16,6 +16,5 @@ group :test do
 end
 
 group :development do
-  gem 'ruby-debug-base', "0.10.5.jb2"
-  gem "ruby-debug-ide"
+  gem 'ruby-debug'
 end

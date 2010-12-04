@@ -10,7 +10,7 @@ Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 Rspec.configure do |c|
   c.mock_with :rr
-  #  c.mock_with RR::Adapters::Rspec
+  # c.mock_with RR::Adapters::Rspec
 
 end
 

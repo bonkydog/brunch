@@ -15,6 +15,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     builder (3.0.0)
+    columnize (0.3.1)
     diff-lcs (1.1.2)
     excon (0.2.8)
     fakeweb (1.3.0)
@@ -36,10 +37,11 @@ GEM
     rspec-expectations (2.1.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.1.0)
-    ruby-debug-base (0.10.5.jb2)
+    ruby-debug (0.10.4)
+      columnize (>= 0.1)
+      ruby-debug-base (~> 0.10.4.0)
+    ruby-debug-base (0.10.4)
       linecache (>= 0.3)
-    ruby-debug-ide (0.4.15)
-      rake (>= 0.8.1)
     ruby-hmac (0.4.0)
     uuidtools (2.1.1)
 
@@ -58,6 +60,5 @@ DEPENDENCIES
   rspec-core
   rspec-expectations
   rspec-mocks
-  ruby-debug-base (= 0.10.5.jb2)
-  ruby-debug-ide
+  ruby-debug
   uuidtools

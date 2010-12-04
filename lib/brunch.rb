@@ -12,6 +12,11 @@ require 'pp'
 require 'highline/import'
 
 #class Fog::AWS::Compute::Server < Fog::Model
+#
+#  def got_brunchified?
+#    wait_for(1200, 10) { brunchified? }
+#  end
+#
 #  def brunchified?
 #    return true if Fog.mocking?
 #    self.username = 'ubuntu'
@@ -22,8 +27,17 @@ require 'highline/import'
 #  end
 #end
 
+class BrunchError < Exception; end
 
 class Brunch < Fog::Model
+
+  def inspect
+    if self.class.const_defined?(:DISABLE_BRUNCH_INSPECTION)
+      "<Brunch!>" # disable Fog::Model inspection because it causes strange loops when attributes are mocked 
+    else
+      super
+    end
+  end
 
   STOCK_IMAGE_ID = 'ami-1234de7b' # stock Ubuntu 10.10 LTS
 
@@ -47,6 +61,7 @@ class Brunch < Fog::Model
   attribute :prototype_script
   attribute :host_key_script
 
+
   def make_host_keys
     begin
       private_key_file_name = File.join(Dir::tmpdir, "terraform_#$$_#{rand(1000)}")
@@ -57,9 +72,16 @@ class Brunch < Fog::Model
     ensure
       [public_key_file_name, private_key_file_name].each { |f| File.unlink(f) if f && File.exists?(f) }
     end
-    self.host_keys = [host_public_key, host_private_key]
     pp host_keys if $DEBUG
     host_keys
+  end
+
+  def host_keys=(keys)
+    host_public_key, host_private_key = keys
+  end
+  
+  def host_keys
+    [host_public_key, host_private_key]
   end
 
   def make_host_key_script
@@ -76,15 +98,15 @@ class Brunch < Fog::Model
     self.prototype_script = File.read(File.join(root, "scripts/brunchify.bash"))
   end
 
-#  def make_prototype_server
-#    requires :host_keys
-#
-#    self.prototype_server = start_server(STOCK_IMAGE_ID, prototype_script)
-#
-#    raise "Brunchification seems to have failed." unless prototype_server.wait_for(1200, 10) { brunchified? }
-#
-#    prototype_server
-#  end
+  def make_prototype_server
+    requires :host_public_key, :host_private_key
+
+    self.prototype_server = start_server(STOCK_IMAGE_ID, prototype_script)
+
+    raise BrunchError, "Brunchification seems to have failed." unless prototype_server.got_brunchified?
+
+    prototype_server
+  end
 
 #  def make_prototype_image
 #    requires :prototype_server
