@@ -1,6 +1,8 @@
 require 'spec_helper'
 require File.expand_path("../lib/brunch", File.dirname(__FILE__))
 
+
+
 describe Brunch do
 
   
@@ -24,6 +26,9 @@ describe Brunch do
   end
 
   describe "#make_host_key_script" do
+    before do
+      @brunch = Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY')
+    end
 
     it "should generate a host key installation script" do
       @brunch = Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY')
@@ -35,6 +40,28 @@ describe Brunch do
       EOF
 
     end
+
+
+    context "when invoked without a host public key" do
+      before do
+        @brunch.host_public_key = nil
+      end
+
+      it "should raise" do
+        lambda {@brunch.make_host_key_script}.should raise_error(ArgumentError, "host_public_key is required for this operation")
+      end
+    end
+
+    context "when invoked without a host private key" do
+      before do
+        @brunch.host_private_key = nil
+      end
+
+      it "should raise" do
+        lambda {@brunch.make_host_key_script}.should raise_error(ArgumentError, "host_private_key is required for this operation")
+      end
+    end
+
   end
 
   describe "#make_prototype_script" do
@@ -45,6 +72,8 @@ describe Brunch do
     end
   end
 
-  
+  describe "#make_prototype_server" do
+    
+  end
 
 end
