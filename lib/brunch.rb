@@ -11,16 +11,16 @@ require 'uuidtools'
 require 'pp'
 require 'highline/import'
 
-class Fog::AWS::Compute::Server < Fog::Model
-  def brunchified?
-    return true if Fog.mocking?
-    self.username = 'ubuntu'
-    result = ssh('ls ~ubuntu/.brunch_done').last
-    result.status == 0 && result.stdout.include?("brunch_done")
-  rescue Exception => e
-    false
-  end
-end
+#class Fog::AWS::Compute::Server < Fog::Model
+#  def brunchified?
+#    return true if Fog.mocking?
+#    self.username = 'ubuntu'
+#    result = ssh('ls ~ubuntu/.brunch_done').last
+#    result.status == 0 && result.stdout.include?("brunch_done")
+#  rescue Exception => e
+#    false
+#  end
+#end
 
 
 class Brunch < Fog::Model
@@ -76,115 +76,115 @@ class Brunch < Fog::Model
     self.prototype_script = File.read(File.join(root, "scripts/brunchify.bash"))
   end
 
-  def make_prototype_server
-    requires :host_keys
+#  def make_prototype_server
+#    requires :host_keys
+#
+#    self.prototype_server = start_server(STOCK_IMAGE_ID, prototype_script)
+#
+#    raise "Brunchification seems to have failed." unless prototype_server.wait_for(1200, 10) { brunchified? }
+#
+#    prototype_server
+#  end
 
-    self.prototype_server = start_server(STOCK_IMAGE_ID, prototype_script)
+#  def make_prototype_image
+#    requires :prototype_server
+#
+#    volume = connection.volumes.create(:availability_zone => prototype_server.availability_zone, :size => 15)
+#    volume.device = '/dev/sdx'
+#    volume.server = prototype_server
+#
+#    commands = [
+#      'sudo bash -c "echo y | mkfs.ext3 /dev/sdx"',
+#      "sudo mkdir /mnt/ebs",
+#      "sudo mount /dev/sdx /mnt/ebs",
+#      "sudo rsync -a --delete -x / /mnt/ebs",
+#      "sudo umount /mnt/ebs",
+#      "sudo rmdir /mnt/ebs",
+#    ]
+#
+#    prototype_server.username = 'ubuntu'
+#    prototype_server.ssh(commands)
+#
+#    snapshot = volume.snapshots.create
+#    snapshot.wait_for { ready? }
+#
+#    volume.server = nil
+#    volume.wait_for { ready? }
+#    volume.destroy
+#
+#    original_image = connection.images.get(prototype_server.image_id)
+#
+#    new_image = connection.register_image(
+#      "brunch-#{Time.now.strftime("%Y-%m-%d-%H-%M-%S")}-#{SecureRandom.hex[0..6]}",
+#      'brunch: ubuntu + ruby, gems, chef-solo & git',
+#      original_image.root_device_name,
+#      [{"DeviceName" => "/dev/sda1", "DeleteOnTermination"=>"true", "SnapshotId"=> snapshot.id, "VolumeSize"=>"15"}],
+#      'Architecture' => original_image.architecture,
+#      'KernelId' => original_image.kernel_id,
+#      'RamdiskId' => original_image.ramdisk_id
+#    )
+#
+#    new_image
+#  end
 
-    raise "Brunchification seems to have failed." unless prototype_server.wait_for(1200, 10) { brunchified? }
+#  def prototype_image
+#    @prototype_image ||= begin
+#      my_images = connection.images.all("is-public" => false)
+#      brunch_images = my_images.select{|i| i.location.match(/\/brunch/)}
+#      most_recent_image =  brunch_images.sort_by(&:location).last
+#      most_recent_image
+#    end
+#  end
 
-    prototype_server
-  end
+#  def make_server(options = {})
+#    image_id = options[:image_id] || prototype_image.id or raise "No image specified (and couldn't find a brunch prototype image)"
+#    self.server = start_server(image_id)
+#  end
 
-  def make_prototype_image
-    requires :prototype_server
-
-    volume = connection.volumes.create(:availability_zone => prototype_server.availability_zone, :size => 15)
-    volume.device = '/dev/sdx'
-    volume.server = prototype_server
-
-    commands = [
-      'sudo bash -c "echo y | mkfs.ext3 /dev/sdx"',
-      "sudo mkdir /mnt/ebs",
-      "sudo mount /dev/sdx /mnt/ebs",
-      "sudo rsync -a --delete -x / /mnt/ebs",
-      "sudo umount /mnt/ebs",
-      "sudo rmdir /mnt/ebs",
-    ]
-
-    prototype_server.username = 'ubuntu'
-    prototype_server.ssh(commands)
-
-    snapshot = volume.snapshots.create
-    snapshot.wait_for { ready? }
-
-    volume.server = nil
-    volume.wait_for { ready? }
-    volume.destroy
-
-    original_image = connection.images.get(prototype_server.image_id)
-
-    new_image = connection.register_image(
-      "brunch-#{Time.now.strftime("%Y-%m-%d-%H-%M-%S")}-#{SecureRandom.hex[0..6]}",
-      'brunch: ubuntu + ruby, gems, chef-solo & git',
-      original_image.root_device_name,
-      [{"DeviceName" => "/dev/sda1", "DeleteOnTermination"=>"true", "SnapshotId"=> snapshot.id, "VolumeSize"=>"15"}],
-      'Architecture' => original_image.architecture,
-      'KernelId' => original_image.kernel_id,
-      'RamdiskId' => original_image.ramdisk_id
-    )
-
-    new_image
-  end
-
-  def prototype_image
-    @prototype_image ||= begin
-      my_images = connection.images.all("is-public" => false)
-      brunch_images = my_images.select{|i| i.location.match(/\/brunch/)}
-      most_recent_image =  brunch_images.sort_by(&:location).last
-      most_recent_image
-    end
-  end
-
-  def make_server(options = {})
-    image_id = options[:image_id] || prototype_image.id or raise "No image specified (and couldn't find a brunch prototype image)"
-    self.server = start_server(image_id)
-  end
-
-  def make_destroy_everything
-    unless agree("Are you sure you want to destroy EVERYTHING?")
-      puts "OK, NOT destroying everything."
-      return
-    end
-
-    connection.images.all("is-public" => false).each {|image| image.deregister(true)}
-    connection.snapshots.each {|snapshot| snapshot.destroy}
-    connection.volumes.each {|volume| volume.destroy if volume.ready? }
-    connection.servers.each do |server|
-      Net::SSH::KnownHosts.remove(server.dns_name)
-      server.destroy
-    end
-  end
+#  def make_destroy_everything
+#    unless agree("Are you sure you want to destroy EVERYTHING?")
+#      puts "OK, NOT destroying everything."
+#      return
+#    end
+#
+#    connection.images.all("is-public" => false).each {|image| image.deregister(true)}
+#    connection.snapshots.each {|snapshot| snapshot.destroy}
+#    connection.volumes.each {|volume| volume.destroy if volume.ready? }
+#    connection.servers.each do |server|
+#      Net::SSH::KnownHosts.remove(server.dns_name)
+#      server.destroy
+#    end
+#  end
   
-  def destroy_everything
-    nil
-  end
+#  def destroy_everything
+#    nil
+#  end
 
 
   # ===== UTILITIES ====================================================================================================
 
-  def start_server(image_id , boot_script = nil)
-
-    user_data = ["#!/bin/bash", host_key_script, boot_script.to_s].join("\n")
-
-    server_options = {
-      :image_id => image_id,
-      :flavor_id => 't1.micro',
-      :key_name => 'bonkydog',
-      :user_data => user_data
-    }
-
-    new_server = connection.servers.create(server_options)
-
-    new_server.wait_for { ready? }
-
-    hosts = [new_server.dns_name, new_server.ip_address].join(",")
-
-    #Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
-
-    pp new_server if $DEBUG
-    new_server
-  end
+#  def start_server(image_id , boot_script = nil)
+#
+#    user_data = ["#!/bin/bash", host_key_script, boot_script.to_s].join("\n")
+#
+#    server_options = {
+#      :image_id => image_id,
+#      :flavor_id => 't1.micro',
+#      :key_name => 'bonkydog',
+#      :user_data => user_data
+#    }
+#
+#    new_server = connection.servers.create(server_options)
+#
+#    new_server.wait_for { ready? }
+#
+#    hosts = [new_server.dns_name, new_server.ip_address].join(",")
+#
+#    #Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
+#
+#    pp new_server if $DEBUG
+#    new_server
+#  end
 
 
 

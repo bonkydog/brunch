@@ -37,6 +37,14 @@ describe Brunch do
     end
   end
 
+  describe "#make_prototype_script" do
+    it "should read the brunchify script" do
+      stub(File).read(%r'scripts/brunchify.bash$'){"brunchify!"}
+      @brunch.make_prototype_script.should == "brunchify!"
+      @brunch.prototype_script.should == "brunchify!"
+    end
+  end
+
   
 
 end
