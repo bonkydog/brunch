@@ -1,13 +1,10 @@
 #########################################################
 # packages
 
-# enable all repositories
-sed -i 's/^#deb/deb/' /etc/apt/sources.list
-sed -i 's/universe/universe multiverse/' /etc/apt/sources.list
-
 # update packages
-aptitude update
-aptitude -y full-upgrade
+apt-get -y update
+apt-get -y remove grub-pc # unneeded, has interactive upgrade :-/
+apt-get -y upgrade
 
 # install packages for system administration
 aptitude -y install \

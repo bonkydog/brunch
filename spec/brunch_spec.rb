@@ -4,11 +4,6 @@ require File.expand_path("../lib/brunch", File.dirname(__FILE__))
 describe Brunch do
   include BrunchMacros
   
-  before :all do
-    Fog.mock!
-    Brunch::DISABLE_BRUNCH_INSPECTION = true
-   end
-
   subject { Brunch.new }
   alias_method :brunch, :subject
   
@@ -29,8 +24,8 @@ describe Brunch do
   describe "#make_host_key_script" do
     subject { Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY') }
 
-    it_should_require(:host_private_key)
-    it_should_require(:host_public_key)
+    it_requires(:host_private_key)
+    it_requires(:host_public_key)
 
     it "generates a host key installation script" do
       script = subject.make_host_key_script
@@ -44,6 +39,8 @@ describe Brunch do
   end
 
   describe "#make_prototype_script" do
+    subject { Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY') }
+
     it "returns and remember the brunchify script" do
       stub(File).read(%r'scripts/brunchify.bash$') { "brunchify!" }
       brunch.make_prototype_script.should == "brunchify!"
@@ -53,24 +50,24 @@ describe Brunch do
 
   describe "#make_prototype_server" do
 
-     subject { Brunch.new(:host_public_key => 'PUBLIC_KEY', :host_private_key => 'PRIVATE_KEY') }
+     subject { Brunch.new(:host_key_script => 'fake host key script', :prototype_script => 'fake prototype script') }
 
-    it_should_require(:host_public_key)
-    it_should_require(:host_private_key)
+    it_requires(:host_key_script)
+    it_requires(:prototype_script)
 
     describe do
 
       before do
         @successful = true
         stub(brunch).prototype_script { "I CAN HAS PROTOTYPE?" }
-        stub(brunch).start_server(Brunch::STOCK_IMAGE_ID, "I CAN HAS PROTOTYPE?") do
+        stub(brunch).start_server("ami-480df921", {:tags=>{"prototype"=>true}, :boot_script=>"I CAN HAS PROTOTYPE?"}) do
           @fake_server = stub!.got_brunchified? { @successful }.subject
         end
       end
 
       it "starts a stock server" do
         brunch.make_prototype_server
-        brunch.should have_received.start_server(Brunch::STOCK_IMAGE_ID, "I CAN HAS PROTOTYPE?")
+        brunch.should have_received.start_server("ami-480df921", {:tags=>{"prototype"=>true}, :boot_script=>"I CAN HAS PROTOTYPE?"})
       end
 
       it "returns and remember the server" do
@@ -88,5 +85,18 @@ describe Brunch do
 
     end
   end
+
+  describe "#make_prototype_image" do
+    it_requires(:prototype_server)
+
+    it "creates an image of the prototype server (stopping & rebooting it!)" do
+      stub(brunch).prototype_server.stub!.id{"i-fakerino"}
+      stub(brunch).new_prototype_image_name {"brunch-fake-name"}
+      mock(brunch.connection).create_image("i-fakerino", "brunch-fake-name", 'brunch prototype: ubuntu + ruby, gems, chef-solo & git')
+      brunch.make_prototype_image
+    end
+
+  end
+
 
 end

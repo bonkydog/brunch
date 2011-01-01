@@ -51,9 +51,9 @@ namespace :brunch do
 
   namespace :prototype do
 
-    brunch :script => :host_keys
+    brunch :script
 
-    brunch :server => :script
+    brunch :server => [:host_key_script, :script]
 
     brunch :image => :server
 

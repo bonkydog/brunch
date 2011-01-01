@@ -17,8 +17,8 @@ module BrunchMacros
         @args = args
       end
 
-      def it_should_require(attribute)
-        @spec.it_should_require(attribute) {@spec.subject.send(@spec.described_method, *args)}
+      def it_requires(attribute)
+        @spec.it_requires(attribute) {@spec.subject.send(@spec.described_method, *args)}
       end
     end
 
@@ -26,7 +26,7 @@ module BrunchMacros
       Calling.new(self, args)
     end
 
-    def it_should_require(attribute, &block)
+    def it_requires(attribute, &block)
       context "when #{attribute} is nil" do
         before do
           subject.send(attribute.to_s + "=",  nil)
