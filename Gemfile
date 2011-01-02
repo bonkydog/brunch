@@ -1,9 +1,9 @@
 source :rubygems
-gem "rake"
 gem "fog", :path => "~/workspace/fog"
 gem "net-ssh"
-gem "uuidtools"
-gem "highline"
+gem "thor"
+gem "erubis"
+gem "map"
 
 group :test do
   gem 'rspec-core'
@@ -16,5 +16,6 @@ group :test do
 end
 
 group :development do
+  gem "rake"
   gem 'ruby-debug'
 end

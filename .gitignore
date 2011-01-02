@@ -1,3 +1,6 @@
 .idea/
 config/
 bin/
+pkg/*
+*.gem
+.bundle

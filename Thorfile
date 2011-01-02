@@ -1,0 +1,1 @@
+load File.expand_path("../lib/tasks/brunch.thor", __FILE__)

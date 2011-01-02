@@ -1,0 +1,44 @@
+---
+roles:
+  :micro_base:
+    key_name: bonkydog
+#    product_image_id: ami-0616e76f
+    source_image_id: ami-a2f405cb
+    description: micro base is your friend!
+    flavor_id: t1.micro
+
+  :micro_server2:
+    key_name: bonkydog
+    source_image_id: ami-0616e76f
+    product_image_id: ami-141fee7d
+    description: micro web is a webserver based on micro base!
+    flavor_id: t1.micro
+    image_preparation: "killall unicorn; for SERVICE in nginx mysql mongodb rabbitmq-server; do /etc/init.d/$SERVICE stop; done"
+    node:
+      recipes:
+      - build-essential
+      - openssl
+      - nginx
+      - mysql::client
+      - mysql::server
+      - mongodb
+      - rabbitmq
+      - vim
+      - screen
+      - tmux
+      cookbook_repositories:
+      - name: main_library
+        location: git://github.com/bonkydog/cookbooks.git
+        filter: true
+      - name: site_library
+        location: git@github.com:bonkydog/seekrit_cookbooks.git
+        filter: false
+      mysql:
+        bind_address: 127.0.0.1
+        server_root_password: ""
+      nginx_unicorn_conf:
+        path_to_app: /data/www/test_app
+
+
+servers: {}
+

@@ -1,7 +1,4 @@
+ENV['BRUNCH_ENV'] = 'test'
+require File.expand_path('../../lib/brunch', __FILE__)
 
-BRUNCH_ENV = 'test'
-
-RSpec.configure do |c|
-
-end
 
