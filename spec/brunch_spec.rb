@@ -70,14 +70,14 @@ describe Brunch do
         brunch.should have_received.start_server("ami-480df921", {:tags=>{"prototype"=>true}, :boot_script=>"I CAN HAS PROTOTYPE?"})
       end
 
-      it "returns and remember the server" do
+      it "returns and remembers the server" do
         brunch.make_prototype_server.should == @fake_server
         brunch.prototype_server.should == @fake_server
       end
 
       describe "when the the chef setup doesn't finish in a reasonable amount of time" do
         it "raises an error" do
-          @successful = false
+          new_instance_of(Fog::AWS::Compute::Server){|s| stub(s).got_brunchified? {false} }
           lambda { brunch.make_prototype_server }.should raise_error(BrunchError, "Brunchification seems to have failed.")
         end
 
@@ -90,9 +90,16 @@ describe Brunch do
     it_requires(:prototype_server)
 
     it "creates an image of the prototype server (stopping & rebooting it!)" do
+
       stub(brunch).prototype_server.stub!.id{"i-fakerino"}
       stub(brunch).new_prototype_image_name {"brunch-fake-name"}
+
       mock(brunch.connection).create_image("i-fakerino", "brunch-fake-name", 'brunch prototype: ubuntu + ruby, gems, chef-solo & git')
+
+      stub(brunch).wait_for_image_to_become_available{stub!.id {'ami-fake'}}
+
+      mock(brunch.connection).create_tags("ami-fake", {:environment => "test", :prototype => true, :brunch => true})
+
       brunch.make_prototype_image
     end
 

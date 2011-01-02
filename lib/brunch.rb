@@ -103,6 +103,16 @@ class Brunch < Fog::Model
     "brunch-#{Time.now.strftime("%Y-%m-%d-%H-%M-%S")}-#{SecureRandom.hex[0..6]}"
   end
 
+  def wait_for_image_to_become_available(name)
+    image = nil
+    Fog.wait_for(60 * 30, 10) do
+      image = connection.images.all("is-public" => false).detect do |i|
+        i.location.include?(name) && i.state == 'available'
+      end
+    end
+    image
+  end
+
   def make_prototype_image
     requires :prototype_server
 
@@ -110,11 +120,7 @@ class Brunch < Fog::Model
     name = new_prototype_image_name
     connection.create_image(prototype_server.id, name, description)
 
-    Fog.wait_for(60 * 30, 10) do
-      self.prototype_image = connection.images.all("is-public" => false).detect do |i|
-        i.location.include?(name) && i.state == 'available'
-      end
-    end
+    prototype_image = wait_for_image_to_become_available(name)
 
     raise BrunchError, "Prototype image creation seems to have failed" unless prototype_image
 
