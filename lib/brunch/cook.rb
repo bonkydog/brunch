@@ -8,8 +8,6 @@ require 'pp'
 require 'map'
 require 'thor'
 
-$DEBUG = true
-
 class BrunchError < Exception;
 end
 
