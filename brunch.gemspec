@@ -24,4 +24,10 @@ Gem::Specification.new do |s|
   s.add_dependency('thor', '~> 0.14.6')
   s.add_dependency('erubis', '~> 2.6.6')
   s.add_dependency('map', '~> 2.1.0')
+
+  s.add_development_dependency('rspec', "~>2.5.0")
+  s.add_development_dependency('rr', "~>1.0.2")
+  s.add_development_dependency('fakeweb', "~>1.3.0")
+  s.add_development_dependency('rcov', "~>0.9.9")
+
 end

@@ -7,7 +7,7 @@ class Spatula
   attr_reader :connection
 
   def initialize
-    Fog.credential = ENV['FOG_CREDENTIAL'] || :default
+    Fog.credential = ENV['FOG_CREDENTIAL'] ? ENV['FOG_CREDENTIAL'].to_sym : :default
     @connection = Fog::AWS::Compute.new
   end
 
