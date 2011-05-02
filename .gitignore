@@ -4,3 +4,4 @@ bin/
 pkg/*
 *.gem
 .bundle
+scratch/

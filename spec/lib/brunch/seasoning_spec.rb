@@ -28,8 +28,11 @@ describe Seasoning do
 
   describe "#make_prototype_script" do
     it "returns the brunchify script" do
-      stub(File).read(%r'scripts/brunchify.bash.erb$') { "brunchify with hosthame of '<%= @hostname %>'!" }
-      Seasoning.make_prototype_script("dragon").should == "brunchify with hosthame of 'dragon'!"
+      stub(File).read(%r'scripts/brunchify.bash.erb$') {
+        "brunchify with hostname='<%= @hostname %>' ruby=<%= @ruby_version %> gem=<%= @gem_version %>"
+      }
+
+      Seasoning.make_prototype_script("dragon", "1.9.2", "1.6.2").should == "brunchify with hostname='dragon' ruby=1.9.2 gem=1.6.2"
     end
   end
 
@@ -39,7 +42,9 @@ describe Seasoning do
         "recipes" => [
           "nginx",
           "cake",
-          "pie"
+          "pie",
+          "postgresql::client",
+          "postgresql::server::monster"
         ],
         "cookbook_repositories" => [
           {"name" => "main_library", "location" => "git://github.com/bonkydog/cookbooks.git", "filter" => true},
@@ -47,7 +52,40 @@ describe Seasoning do
         ]
       }
 
-      puts Seasoning.make_customization_script(node)
+      # note that postgresql appears only once and without ::client etc.
+      Seasoning.make_customization_script(node).should == <<-BASH.unindent
+        mkdir -p /etc/chef/cookbooks
+        
+        cat <<RUBY > /etc/chef/solo.rb
+        cookbook_path %w[/etc/chef/cookbooks /etc/chef/site_library]
+        json_attribs  "/etc/chef/node.json"
+        RUBY
+
+        rm -rf /etc/chef/main_library
+        git clone git://github.com/bonkydog/cookbooks.git /etc/chef/main_library
+        if [ -f /etc/chef/main_library/.gitmodules ]; then
+          cd /etc/chef/main_library
+          git submodule init
+          git submodule update
+        fi
+
+        rm -rf /etc/chef/site_library
+        git clone git@github.com:bonkydog/seekrit_cookbooks.git /etc/chef/site_library
+        if [ -f /etc/chef/site_library/.gitmodules ]; then
+          cd /etc/chef/site_library
+          git submodule init
+          git submodule update
+        fi
+
+
+        for library in main_library site_library; do
+          for cookbook in nginx cake pie postgresql; do
+            if [ -d /etc/chef/$library/$cookbook ]; then
+             ln -s /etc/chef/$library/$cookbook /etc/chef/cookbooks/$cookbook
+            fi
+          done
+        done
+      BASH
 
     end
   end

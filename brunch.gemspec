@@ -19,11 +19,11 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib", "tasks"]
 
-  s.add_dependency('fog', '~> 0.3.34')
-  s.add_dependency('net-ssh', '~> 2.0.23')
+  s.add_dependency('fog', '~> 0.7.2')
+  s.add_dependency('net-ssh', '~> 2.1.4')
   s.add_dependency('thor', '~> 0.14.6')
-  s.add_dependency('erubis', '~> 2.6.6')
-  s.add_dependency('map', '~> 2.1.0')
+  s.add_dependency('erubis', '~> 2.7.0')
+  s.add_dependency('map', '~> 3.0.0')
 
   s.add_development_dependency('rspec', "~>2.5.0")
   s.add_development_dependency('rr', "~>1.0.2")

@@ -11,12 +11,12 @@ $DEBUG=true
 describe Spatula do
 
   before(:all) { destroy_test_resources }
-  after(:all)  { destroy_test_resources }
+  after(:all) { destroy_test_resources }
 
-  before {@spatula = Spatula.new}
+  before { @spatula = Spatula.new }
 
   def ec2
-    @@ec2 ||= Fog::AWS::Compute.new
+    @@ec2 ||= Fog::Compute.new(:provider => 'AWS')
   end
 
   describe "#start_server & #make_image" do
@@ -54,7 +54,7 @@ describe Spatula do
       image.tags['environment'].should == 'test'
       image.tags['test_tag'].should == 'also present'
 
-      snapshot_id = image.block_device_mapping.first
+      snapshot_id = image.block_device_mapping.first['snapshotId']
       snapshot = ec2.snapshots.get(snapshot_id)
       snapshot.tags['brunch'].should == 'true'
       snapshot.tags['environment'].should == 'test'
@@ -62,19 +62,19 @@ describe Spatula do
       snapshot.tags['test_tag'].should == 'also present'
     end
 
-end
-
-def destroy_test_resources
-  ec2.images.all("is-public" => false).select { |x| x.tags['environment'] == 'test' }.each { |image| image.deregister(true) }
-  ec2.snapshots.select { |x| x.tags['environment'] == 'test' }.each { |snapshot| snapshot.destroy }
-  ec2.volumes.select { |x| x.tags['environment'] == 'test' }.each { |volume| volume.destroy if volume.ready? }
-
-  ec2.servers.select { |x| x.tags['environment'] == 'test' && x.state != "terminated" }.each do |server|
-    puts "destroying #{server.dns_name}"
-    Net::SSH::KnownHosts.remove(server.dns_name)
-    server.destroy
   end
-end
+
+  def destroy_test_resources
+    ec2.images.all("is-public" => false).select { |x| x.tags['environment'] == 'test' }.each { |image| image.deregister(true) }
+    ec2.snapshots.select { |x| x.tags['environment'] == 'test' }.each { |snapshot| snapshot.destroy }
+    ec2.volumes.select { |x| x.tags['environment'] == 'test' }.each { |volume| volume.destroy if volume.ready? }
+
+    ec2.servers.select { |x| x.tags['environment'] == 'test' && x.state != "terminated" }.each do |server|
+      puts "destroying #{server.dns_name}"
+      Net::SSH::KnownHosts.remove(server.dns_name)
+      server.destroy
+    end
+  end
 
 
 end

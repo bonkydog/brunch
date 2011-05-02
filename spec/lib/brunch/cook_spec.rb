@@ -30,7 +30,7 @@ describe Cook do
 
       @fake_spatula = Object.new
 
-      mock(Seasoning).make_prototype_script("micro_base-prototype") {"boo!"}
+      mock(Seasoning).make_prototype_script("micro_base-prototype", '1.9.2', '1.6.2') {"boo!"}
 
       mock(@fake_spatula).start_server('ami-a2f405cb', 't1.micro', 'bonkydog', ['boo!'], {"Name"=>"micro_base-prototype"}) {[@fake_server, 'fake_public_key']}
 

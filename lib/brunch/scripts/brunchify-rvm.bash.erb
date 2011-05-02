@@ -1,21 +1,4 @@
 #########################################################
-# ssh
-
-GITHUB_KEY="github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
-
-echo $GITHUB_KEY >> ~ubuntu/.ssh/known_hosts
-echo $GITHUB_KEY >> ~root/.ssh/known_hosts
-
-sed -i='' 's/command.*ssh-/ssh-/' ~root/.ssh/authorized_keys
-
-chown -R ubuntu:ubuntu ~ubuntu/.ssh
-chown -R root:root ~root/.ssh
-
-chmod -R go-rw ~ubuntu/.ssh
-chmod -R go-rw ~root/.ssh
-
-
-#########################################################
 # packages
 
 # update packages
@@ -25,16 +8,11 @@ apt-get -y upgrade
 
 # install packages for system administration
 aptitude -y install \
-  ruby \
-  ruby1.8-dev \
-  libopenssl-ruby1.8 \
-  libshadow-ruby1.8 \
   libxml2-dev \
   libxslt-dev \
-  rdoc \
-  ri \
-  irb\
-  libwirble-ruby \
+  libssl-dev \
+  libreadline-dev \
+  zlib1g-dev \
   build-essential \
   wget \
   curl \
@@ -45,6 +23,12 @@ aptitude -y install \
   tmux \
   git-core
 
+#########################################################
+# rvm
+
+bash < <(curl -s https://rvm.beginrescueend.com/install/rvm)
+rvm install <%= @ruby_version %>
+rvm --default use <%= @ruby_version %>
 
 #########################################################
 # ruby gems
@@ -67,6 +51,21 @@ rm -rf rubygems-${RUBY_GEMS_VERSION}*
 gem install --no-rdoc --no-ri bundler rake thor chef
 
 
+#########################################################
+# ssh
+
+GITHUB_KEY="github.com,207.97.227.239 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
+
+echo $GITHUB_KEY >> ~ubuntu/.ssh/known_hosts
+echo $GITHUB_KEY >> ~root/.ssh/known_hosts
+
+sed -i='' 's/command.*ssh-/ssh-/' ~root/.ssh/authorized_keys
+
+chown -R ubuntu:ubuntu ~ubuntu/.ssh
+chown -R root:root ~root/.ssh
+
+chmod -R go-rw ~ubuntu/.ssh
+chmod -R go-rw ~root/.ssh
 
 
 #########################################################

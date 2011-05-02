@@ -7,7 +7,7 @@ RUBY
 
 <% @cookbook_repositories.each do |repository| %>
 rm -rf /etc/chef/<%= repository["name"] %>
-git clone -q <%= repository["location"] %> /etc/chef/<%= repository["name"] %>
+git clone <%= repository["location"] %> /etc/chef/<%= repository["name"] %>
 if [ -f /etc/chef/<%= repository["name"] %>/.gitmodules ]; then
   cd /etc/chef/<%= repository["name"] %>
   git submodule init
@@ -16,7 +16,7 @@ fi
 
 <% end %>
 
-for library in <%=  @cookbook_repositories.map{|r| r['name']}.join(" ") %>; do
+for library in <%=  @cookbook_repositories.map{|r| r['name'].gsub(/::.*$/, '')}.uniq.join(" ") %>; do
   for cookbook in <%= @cookbooks_actually_used * " " %>; do
     if [ -d /etc/chef/$library/$cookbook ]; then
      ln -s /etc/chef/$library/$cookbook /etc/chef/cookbooks/$cookbook

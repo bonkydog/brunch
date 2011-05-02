@@ -1,44 +1,38 @@
 ---
-roles:
-  :micro_base:
-    key_name: bonkydog
-#    product_image_id: ami-0616e76f
-    source_image_id: ami-a2f405cb
-    description: micro base is your friend!
-    flavor_id: t1.micro
 
-  :micro_server2:
+roles:
+
+  base:
     key_name: bonkydog
-    source_image_id: ami-0616e76f
-    product_image_id: ami-141fee7d
-    description: micro web is a webserver based on micro base!
-    flavor_id: t1.micro
-    image_preparation: "killall unicorn; for SERVICE in nginx mysql mongodb rabbitmq-server; do /etc/init.d/$SERVICE stop; done"
+    source_image_id: ami-3e02f257
+    product_image_id: ami-6031cc09
+    description: Ubuntu 10.04 LTS Lucid EBS boot 32 bit us-east-1 + ruby, gem, bundler, rake, thor, and chef.
+    flavor_id: c1.medium
+    ruby_version: 1.9.2
+    gem_version: 1.6.2
+
+  whitebox-demo-server:
+    key_name: bonkydog
+    source_image_id: ami-6031cc09
+    product_image_id:
+    description: Ubuntu 10.04 LTS Lucid EBS boot 32 bit us-east-1 + ruby, gem, bundler, rake, thor, and chef.
+    flavor_id: c1.medium
+    image_preparation: "echo 'for SERVICE in postgresql nginx; do /etc/init.d/$SERVICE stop; done'"
     node:
       recipes:
       - build-essential
       - openssl
       - nginx
-      - mysql::client
-      - mysql::server
-      - mongodb
-      - rabbitmq
-      - vim
-      - screen
-      - tmux
+      - postgresql::client
+      - postgresql::server #GGG install libpq-dev somehow
+      - nginx_unicorn_conf
       cookbook_repositories:
-      - name: main_library
-        location: git://github.com/bonkydog/cookbooks.git
+      - name: library
+        location: git@github.com:bonkydog/cookbooks.git
+        branch: 0.10.0
         filter: true
-      - name: site_library
+      - name: site_cookbooks
         location: git@github.com:bonkydog/seekrit_cookbooks.git
         filter: false
-      mysql:
-        bind_address: 127.0.0.1
-        server_root_password: ""
       nginx_unicorn_conf:
-        path_to_app: /data/www/test_app
-
-
-servers: {}
-
+        path_to_app: /data/www/whitebox

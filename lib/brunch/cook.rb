@@ -44,7 +44,7 @@ class Cook
     role = config.roles[role_name]
 
     machine_name = "#{role_name}-prototype"
-    scripts = role['node'] ? [] : [Seasoning.make_prototype_script(machine_name)]
+    scripts = role['node'] ? [] : [Seasoning.make_prototype_script(machine_name, role[:ruby_version] || '1.9.2', role[:gem_version] || '1.6.2' )]
 
     server, role.host_public_key = @spatula.start_server(
       role.source_image_id,
@@ -78,10 +78,10 @@ class Cook
     server.run('mkdir -p /etc/chef')
     script = Seasoning.make_customization_script(role.node)
     server.upload_file("/etc/chef/customize", script)
-    server.upload_file("/etc/chef/node.json", role.node.to_json)
+    server.upload_file("/etc/chef/node.json", JSON.pretty_generate(role.node))
     server.run(
-      "bash /etc/chef/customize",
-      "exec chef-solo > >(tee -a /var/log/brunch.log|logger -t brunch -s 2>/dev/console) 2>&1"
+      "bash /etc/chef/customize #{Seasoning.redirect_command_output_to_brunch_log}",
+      "bash -l -c 'chef-solo #{Seasoning.redirect_command_output_to_brunch_log}'"
     )
   end
 
@@ -103,7 +103,7 @@ class Cook
         role.source_image_id,
         role.flavor_id,
         role.key_name,
-        Seasoning.make_prototype_script(role_name),
+        Seasoning.make_prototype_script(role_name, role.ruby_version || '1.9.2', role.gem_version || '1.6.2' ),
         :Name => server_name
       )
     end

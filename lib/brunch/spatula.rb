@@ -8,7 +8,7 @@ class Spatula
 
   def initialize
     Fog.credential = ENV['FOG_CREDENTIAL'] ? ENV['FOG_CREDENTIAL'].to_sym : :default
-    @connection = Fog::AWS::Compute.new
+    @connection = Fog::Compute.new(:provider => 'AWS')
   end
 
   def lookup_server(server_id)
@@ -26,7 +26,7 @@ class Spatula
       set -x
       set -e
 
-      exec > >(tee -a /var/log/brunch.log|logger -t brunch -s 2>/dev/console) 2>&1
+      #{Seasoning.redirect_script_output_to_brunch_log}
 
     BASH
 
@@ -69,7 +69,7 @@ class Spatula
     connection.create_tags([server.id] + server.volumes.map { |v| v.id }, tags)
     server.reload
 
-    hosts = [server.dns_name, server.ip_address].join(",")
+    hosts = [server.dns_name, server.public_ip_address].join(",")
     Net::SSH::KnownHosts.add_or_replace(hosts, host_public_key)
 
     puts "new_server=#{server.inspect}" if $DEBUG
@@ -79,7 +79,7 @@ class Spatula
 
   def terminate_server(server)
     server.destroy
-    hosts = [server.dns_name, server.ip_address].join(",")
+    hosts = [server.dns_name, server.public_ip_address].join(",")
     Net::SSH::KnownHosts.remove(hosts)
   end
 
@@ -93,9 +93,9 @@ class Spatula
     connection.create_tags(image.id, brunch_tags.merge(tags))
     image.reload
 
-    image.block_device_mapping.each do |d|
-      snapshot = connection.snapshots.get(d['snapshotId'])
-      connection.create_tags(snapshot.id, brunch_tags.merge(tags).merge("device_name" => ['deviceName']))
+    image.block_device_mapping.each do |device|
+      snapshot = connection.snapshots.get(device['snapshotId'])
+      connection.create_tags(snapshot.id, brunch_tags.merge(tags).merge("device_name" => device['deviceName']))
     end
 
     image
