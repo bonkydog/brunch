@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency('fog', '~> 0.7.2')
   s.add_dependency('net-ssh', '~> 2.1.4')
-  s.add_dependency('thor', '~> 0.14.6')
+  s.add_dependency('rake', '~> 0.8.7')
   s.add_dependency('erubis', '~> 2.7.0')
   s.add_dependency('map', '~> 3.0.0')
 
