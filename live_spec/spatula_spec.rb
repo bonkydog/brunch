@@ -25,10 +25,11 @@ describe Spatula do
       image_id = 'ami-480df921'
       flavor_id = 't1.micro'
       key_name = 'bonkydog'
+      availability_zone = 'us-east-1a'
 
       custom_script = 'cp ~ubuntu/.ssh/* ~root/.ssh; touch ~root/.brunch_done'
 
-      server, host_public_key = @spatula.start_server(image_id, flavor_id, key_name, custom_script, {:test_tag => "present"})
+      server, host_public_key = @spatula.start_server(image_id, flavor_id, key_name, availability_zone, custom_script, {:test_tag => "present"})
 
       host_public_key.should_not be_nil
 

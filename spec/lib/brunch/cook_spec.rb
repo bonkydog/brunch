@@ -1,4 +1,4 @@
-require 'spec_helper'
+require File.expand_path("../../../spec_helper", __FILE__)
 
 
 describe Cook do
@@ -10,6 +10,7 @@ describe Cook do
           :source_image_id => 'ami-a2f405cb',
           :flavor_id => 't1.micro',
           :key_name => 'bonkydog',
+          :availability_zone => 'us-east-1a',
           :description => 'micro base is your friend!'
         }
       }
@@ -32,7 +33,7 @@ describe Cook do
 
       mock(Seasoning).make_prototype_script("micro_base-prototype", '1.9.2', '1.6.2') {"boo!"}
 
-      mock(@fake_spatula).start_server('ami-a2f405cb', 't1.micro', 'bonkydog', ['boo!'], {"Name"=>"micro_base-prototype"}) {[@fake_server, 'fake_public_key']}
+      mock(@fake_spatula).start_server('ami-a2f405cb', 't1.micro', 'bonkydog', 'us-east-1a', ['boo!'], {"Name"=>"micro_base-prototype"}) {[@fake_server, 'fake_public_key']}
 
       mock(@fake_server).done_getting_brunchified? { true }
 

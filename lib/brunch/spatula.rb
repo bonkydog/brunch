@@ -12,14 +12,16 @@ class Spatula
   end
 
   def lookup_server(server_id)
-    server_id = connection.servers.get(server_id)
-    raise "server #{server_id} not found" unless server_id
-    raise "server #{server_id} not ready" unless server_id.ready?
+    server = connection.servers.get(server_id)
+    raise "server #{server_id} not found" unless server
+    raise "server #{server_id} not ready" unless server.ready?
+    server
   end
 
-  def start_server(image_id, flavor_id, key_name, scripts=[], tags={})
+  def start_server(image_id, flavor_id, key_name, availability_zone, scripts=[], tags={})
 
     host_public_key, host_private_key = Seasoning.make_host_keys
+    availability_zone ||= 'us-east-1b'
 
     user_data = <<-BASH.unindent
       #!/bin/bash
@@ -33,7 +35,7 @@ class Spatula
     user_data += Seasoning.make_host_key_script(host_public_key, host_private_key)
     scripts = case scripts
       when Array then
-        scripts.join('\n')
+        scripts.compact.join('\n')
       when String then
         scripts
       else
@@ -46,6 +48,7 @@ class Spatula
       :image_id => image_id,
       :flavor_id => flavor_id,
       :key_name => key_name,
+      :availability_zone => availability_zone,
       :user_data => user_data,
     }
 

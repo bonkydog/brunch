@@ -23,7 +23,7 @@ class Cook
     @config = case config
       when String
         @config_file_name = config
-        ::Map.new(YAML.load_file(config))
+        ::Map.new(YAML.load(Erubis::Eruby.new(File.read(config)).evaluate))
       when Map
         config
       else
@@ -45,11 +45,14 @@ class Cook
 
     machine_name = "#{role_name}-prototype"
     scripts = role['node'] ? [] : [Seasoning.make_prototype_script(machine_name, role[:ruby_version] || '1.9.2', role[:gem_version] || '1.6.2' )]
+    scripts << role['instance_preparation']
+
 
     server, role.host_public_key = @spatula.start_server(
       role.source_image_id,
       role.flavor_id,
       role.key_name,
+      role[:availability_zone],
       scripts,
       'Name' => machine_name
     )
@@ -95,7 +98,8 @@ class Cook
         role.product_image_id,
         role.flavor_id,
         role.key_name,
-        [],
+        role[:availability_zone],
+        [role['instance_preparation']],
         :Name => server_name
       )[0]
     else
@@ -103,7 +107,11 @@ class Cook
         role.source_image_id,
         role.flavor_id,
         role.key_name,
-        Seasoning.make_prototype_script(role_name, role.ruby_version || '1.9.2', role.gem_version || '1.6.2' ),
+        role[:availability_zone],
+        [
+          Seasoning.make_prototype_script(role_name, role.ruby_version || '1.9.2', role.gem_version || '1.6.2' ),
+          role['instance_preparation']
+        ],
         :Name => server_name
       )
     end
