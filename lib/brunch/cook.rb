@@ -6,7 +6,6 @@ require 'net/ssh'
 require 'tmpdir'
 require 'pp'
 require 'map'
-require 'thor'
 
 class BrunchError < Exception;
 end

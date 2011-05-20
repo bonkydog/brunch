@@ -23,9 +23,9 @@ describe Spatula do
     it "boots a server and creates an image from it" do
 
       image_id = 'ami-480df921'
-      flavor_id = 't1.micro'
+      flavor_id = 'c1.medium'
       key_name = 'bonkydog'
-      availability_zone = 'us-east-1a'
+      availability_zone = 'us-east-1b'
 
       custom_script = 'cp ~ubuntu/.ssh/* ~root/.ssh; touch ~root/.brunch_done'
 
