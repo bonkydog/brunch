@@ -19,15 +19,15 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib", "tasks"]
 
-  s.add_dependency('fog', '~> 0.8.1')
-  s.add_dependency('net-ssh', '~> 2.1.4')
-  s.add_dependency('rake', '~> 0.8.7')
-  s.add_dependency('erubis', '~> 2.6.6')
-  s.add_dependency('map', '~> 3.0.0')
+  s.add_dependency('fog', '>= 0.8.1')
+  s.add_dependency('net-ssh', '>= 2.1.4')
+  s.add_dependency('rake', '>= 0.8.7')
+  s.add_dependency('erubis', '>= 2.6.6')
+  s.add_dependency('map', '>= 3.0.0')
 
-  s.add_development_dependency('rspec', "~>2.5.0")
-  s.add_development_dependency('rr', "~>1.0.2")
-  s.add_development_dependency('fakeweb', "~>1.3.0")
-  s.add_development_dependency('rcov', "~>0.9.9")
+  s.add_development_dependency('rspec', ">=2.5.0")
+  s.add_development_dependency('rr', ">=1.0.2")
+  s.add_development_dependency('fakeweb', ">=1.3.0")
+  s.add_development_dependency('rcov', ">=0.9.9")
 
 end
