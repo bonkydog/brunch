@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency('rake', '>= 0.8.7')
   s.add_dependency('erubis', '>= 2.6.6')
   s.add_dependency('map', '>= 3.0.0')
+  s.add_dependency('yajl-ruby', '>= 0.8.2')
 
   s.add_development_dependency('rspec', ">=2.5.0")
   s.add_development_dependency('rr', ">=1.0.2")
