@@ -117,7 +117,7 @@ class Cook
 
     puts server.inspect if $DEBUG
 
-    puts "New server running at #{server.dns_name}"
+    puts "New server running at #{server.dns_name} with id: #{server.id}"
   end
 
 end

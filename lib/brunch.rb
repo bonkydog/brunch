@@ -1,3 +1,4 @@
+require 'yajl/json_gem'
 require File.expand_path('../brunch/cook', __FILE__)
 require File.expand_path('../brunch/seasoning', __FILE__)
 require File.expand_path('../brunch/spatula', __FILE__)
